@@ -1,6 +1,6 @@
 <template>
   <div class="player-box">
-    <video ref="videoRef" controls autoplay muted playsinline></video>
+    <video ref="videoRef" controls autoplay muted playsinline crossorigin="anonymous"></video>
     <div v-if="!streamUrl" class="player-placeholder">等待加载视频流</div>
   </div>
 </template>
@@ -40,6 +40,25 @@ function loadStream() {
   video.src = props.streamUrl
 }
 
+function captureFrame() {
+  const video = videoRef.value
+  if (!video || !props.streamUrl) {
+    throw new Error('视频流尚未加载，无法拍照')
+  }
+  if (!video.videoWidth || !video.videoHeight) {
+    throw new Error('视频画面尚未准备好，请稍后再拍照')
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+  return canvas.toDataURL('image/jpeg', 0.9)
+}
+
 watch(() => props.streamUrl, loadStream, { immediate: true })
 onBeforeUnmount(destroyHls)
+
+defineExpose({ captureFrame })
 </script>
