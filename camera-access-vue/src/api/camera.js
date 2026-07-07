@@ -28,11 +28,12 @@ export async function getCameraStreamApi(cameraId) {
   if (useMock) {
     return wait({
       cameraId,
-      streamType: 'hls',
-      streamUrl: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+      streamType: 'iframe',
+      streamUrl: 'http://64.176.57.254:8889/live/desktop/',
       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
     })
   }
+
   return request.get(`/api/cameras/${cameraId}/stream`)
 }
 
