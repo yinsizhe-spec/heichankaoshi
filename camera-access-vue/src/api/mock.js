@@ -13,29 +13,29 @@ export const mockUser = {
 export const mockCameras = [
   {
     cameraId: 'cam_001',
-    cameraName: '仓库入口摄像头',
-    location: 'Warehouse Gate',
+    cameraName: 'SPM考试',
+    location: 'taylors大礼堂',
     status: 'online',
-    accessStartTime: `${currentHour}:00`,
+    accessStartTime: `2026/7/7 ${currentHour}:00`,
     accessEndTime: `${nextHour}:59`,
     canAccessNow: true
   },
   {
     cameraId: 'cam_002',
-    cameraName: '办公室摄像头',
-    location: 'Office',
+    cameraName: 'TOC考试',
+    location: 'taylors大礼堂',
     status: 'online',
-    accessStartTime: '13:00',
-    accessEndTime: '17:00',
+    accessStartTime: '2026/7/7 13:00',
+    accessEndTime: '2026/7/7 17:00',
     canAccessNow: false
   },
   {
     cameraId: 'cam_003',
-    cameraName: '停车场摄像头',
-    location: 'Parking Area',
+    cameraName: 'PPIS考试',
+    location: 'taylors大礼堂',
     status: 'offline',
-    accessStartTime: '09:00',
-    accessEndTime: '18:00',
+    accessStartTime: '2026/7/7 09:00',
+    accessEndTime: '2026/7/7 18:00',
     canAccessNow: false
   }
 ]

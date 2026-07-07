@@ -32,7 +32,7 @@
             <button class="primary" :disabled="analysisLoading" @click="takeSnapshotAndAnalyze">
               {{ analysisLoading ? 'AI 分析中...' : '拍照并进行 AI 分析' }}
             </button>
-            <span class="muted">分析结果显示在右侧，不会覆盖摄像头画面。</span>
+            <!-- <span class="muted">分析结果显示在右侧，不会覆盖摄像头画面。</span> -->
           </div>
           <p v-if="captureError" class="error-text">{{ captureError }}</p>
           <p v-if="endedMessage" class="error-text">{{ endedMessage }}</p>
@@ -40,15 +40,15 @@
 
         <aside class="analysis-panel">
           <div class="analysis-header">
-            <h2>AI 分析结果</h2>
+            <h2>AI 答案查询</h2>
             <span v-if="analysisResult" class="badge" :class="riskBadgeClass">
               {{ riskText }}
             </span>
           </div>
 
           <div v-if="!snapshotImage && !analysisResult" class="empty-analysis">
-            <p>点击“拍照并进行 AI 分析”后，这里会显示抓拍图片和分析内容。</p>
-            <p class="muted">该区域独立于视频播放器，不会遮挡实时画面。</p>
+            <p>点击“拍照并进行 AI 分析”后，这里会显示试卷答案。</p>
+            <!-- <p class="muted">该区域独立于视频播放器，不会遮挡实时画面。</p> -->
           </div>
 
           <img v-if="snapshotImage" class="snapshot-preview" :src="snapshotImage" alt="摄像头抓拍图片" />

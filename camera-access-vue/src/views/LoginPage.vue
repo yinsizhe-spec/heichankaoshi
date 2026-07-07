@@ -1,11 +1,11 @@
 <template>
   <main class="login-page">
     <section class="login-card">
-      <h1>摄像头访问控制系统</h1>
-      <p class="muted">请登录后查看授权摄像头内容</p>
+      <h1>KJ考试终端</h1>
+      <p class="muted">请登录后查看授权设备</p>
 
       <form @submit.prevent="handleLogin">
-        <label>用户名 / 邮箱</label>
+        <label>用户名</label>
         <input v-model.trim="form.username" placeholder="请输入用户名或邮箱" autocomplete="username" />
 
         <label>密码</label>
@@ -17,7 +17,7 @@
         </button>
       </form>
 
-      <div class="demo-tip">Mock 测试：任意用户名 + 任意密码均可登录</div>
+      <!-- <div class="demo-tip">Mock 测试：任意用户名 + 任意密码均可登录</div> -->
     </section>
   </main>
 </template>
