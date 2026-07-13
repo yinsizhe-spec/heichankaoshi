@@ -3,110 +3,229 @@ import { mockCameras, wait } from './mock'
 
 const useMock = import.meta.env.VITE_USE_MOCK === 'true'
 
-const MEDIAMTX_WEBRTC_URL = 'http://64.176.57.254:8889/live/desktop/'
+/**
+ * 统一摄像头字段格式。
+ *
+ * 后端返回：
+ * status: ONLINE
+ * streamType: IFRAME
+ *
+ * 前端页面原本使用：
+ * status: online
+ * streamType: iframe
+ */
+function normalizeCamera(camera) {
+  return {
+    ...camera,
 
-export async function getCameraListApi() {
-  if (useMock) {
-    return wait(mockCameras)
+    cameraId: camera.cameraId || camera.id || '',
+
+    cameraName:
+      camera.cameraName ||
+      camera.name ||
+      '未命名摄像头',
+
+    location: camera.location || '未知位置',
+
+    status: String(
+      camera.status || 'OFFLINE'
+    ).toLowerCase(),
+
+    streamType: String(
+      camera.streamType || ''
+    ).toLowerCase(),
+
+    canAccessNow: Boolean(
+      camera.canAccessNow
+    ),
+
+    accessStartTime:
+      camera.accessStartTime || '',
+
+    accessEndTime:
+      camera.accessEndTime || '',
+
+    accessMessage:
+      camera.accessMessage || ''
   }
-
-  return request.get('/api/cameras')
 }
 
-export async function checkCameraAccessApi(cameraId) {
+/**
+ * 获取当前用户的摄像头列表。
+ */
+export async function getCameraListApi() {
   if (useMock) {
-    const camera = mockCameras.find((item) => {
-      return item.cameraId === cameraId || item.id === cameraId
-    })
+    return wait(
+      mockCameras.map(normalizeCamera)
+    )
+  }
+
+  const result = await request.get(
+    '/api/cameras'
+  )
+
+  if (!Array.isArray(result)) {
+    throw new Error(
+      '摄像头列表返回格式不正确'
+    )
+  }
+
+  return result.map(normalizeCamera)
+}
+
+/**
+ * 校验当前用户是否可以访问指定摄像头。
+ */
+export async function checkCameraAccessApi(
+  cameraId
+) {
+  if (!cameraId) {
+    throw new Error('摄像头编号不能为空')
+  }
+
+  if (useMock) {
+    const camera = mockCameras.find(
+      (item) =>
+        item.cameraId === cameraId ||
+        item.id === cameraId
+    )
 
     if (!camera) {
       throw new Error('摄像头不存在')
     }
 
+    const normalized =
+      normalizeCamera(camera)
+
     return wait({
-      allowed: camera.canAccessNow && camera.status === 'online',
+      allowed:
+        normalized.canAccessNow &&
+        normalized.status === 'online',
+
       cameraId,
-      serverTime: new Date().toISOString(),
-      accessStartTime: camera.accessStartTime,
-      accessEndTime: camera.accessEndTime,
-      message: camera.canAccessNow
-        ? 'Access allowed'
-        : 'Current time is outside the allowed access period'
+
+      cameraName:
+        normalized.cameraName,
+
+      location:
+        normalized.location,
+
+      cameraStatus:
+        normalized.status,
+
+      serverTime:
+        new Date().toISOString(),
+
+      accessStartTime:
+        normalized.accessStartTime,
+
+      accessEndTime:
+        normalized.accessEndTime,
+
+      reason:
+        normalized.canAccessNow
+          ? 'ACCESS_ALLOWED'
+          : 'OUTSIDE_ACCESS_TIME',
+
+      message:
+        normalized.canAccessNow
+          ? '允许访问'
+          : '当前不在允许访问时间内'
     })
   }
 
-  return request.get(`/api/cameras/${cameraId}/access-check`)
+  const result = await request.get(
+    `/api/cameras/${encodeURIComponent(cameraId)}/access-check`
+  )
+
+  return {
+    ...result,
+
+    allowed: Boolean(result.allowed),
+
+    cameraStatus: String(
+      result.cameraStatus || ''
+    ).toLowerCase()
+  }
 }
 
-export async function getCameraStreamApi(cameraId) {
+/**
+ * 获取摄像头播放地址。
+ */
+export async function getCameraStreamApi(
+  cameraId
+) {
+  if (!cameraId) {
+    throw new Error('摄像头编号不能为空')
+  }
+
   if (useMock) {
     return wait({
       cameraId,
       streamType: 'iframe',
-      streamUrl: MEDIAMTX_WEBRTC_URL,
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      streamUrl:
+        'http://64.176.57.254:8889/live/desktop/',
+      expiresAt: new Date(
+        Date.now() + 60 * 60 * 1000
+      ).toISOString()
     })
   }
 
-  return request.get(`/api/cameras/${cameraId}/stream`)
+  const result = await request.get(
+    `/api/cameras/${encodeURIComponent(cameraId)}/stream`
+  )
+
+  return {
+    ...result,
+
+    streamType: String(
+      result.streamType || ''
+    ).toLowerCase()
+  }
 }
 
-export async function analyzeCameraSnapshotApi(cameraId, imageData) {
+/**
+ * 摄像头截图 AI 分析。
+ */
+export async function analyzeCameraSnapshotApi(
+  cameraId,
+  imageData
+) {
+  if (!cameraId) {
+    throw new Error('摄像头编号不能为空')
+  }
+
+  if (!imageData) {
+    throw new Error('截图数据不能为空')
+  }
+
   if (useMock) {
     return wait({
       cameraId,
-      capturedAt: new Date().toISOString(),
-      confidence: 0.96,
-      paperTitle: '当前画面试卷识别结果',
-      summary: '已从当前画面中模拟识别到多道题目，以下为模拟 AI 答案结果。',
-      questions: [
-        {
-          questionNo: '第 1 题',
-          questionType: '选择题',
-          simpleAnswer: 'A',
-          balancedAnswer: '答案：A。根据题干关键词判断，A 选项最符合题意。',
-          bestAnswer:
-            '最优答案：A。题干中的核心条件与 A 选项完全对应，其他选项要么缺少关键条件，要么与题意存在偏差，因此选择 A。'
-        },
-        {
-          questionNo: '第 2 题',
-          questionType: '选择题',
-          simpleAnswer: 'B',
-          balancedAnswer: '答案：B。B 选项能够较好地对应题目中的主要条件。',
-          bestAnswer:
-            '最优答案：B。根据题干要求，需要选择最符合条件的选项。B 同时满足题目给出的主要限制条件和结论要求，因此优先选择 B。'
-        },
-        {
-          questionNo: '第 3 题',
-          questionType: '简答题',
-          simpleAnswer: '写出核心概念即可。',
-          balancedAnswer:
-            '平衡答案：先说明核心概念，再结合题干条件进行简要解释，保证答案完整但不过度展开。',
-          bestAnswer:
-            '最优答案：本题应先点明核心概念，然后结合题目中的具体条件进行分析，最后给出明确结论。回答时需要包含关键词、原因和结论三部分，这样得分更稳定。'
-        },
-        {
-          questionNo: '第 4 题',
-          questionType: '判断题',
-          simpleAnswer: '正确',
-          balancedAnswer: '答案：正确。题干表述与相关定义或规则一致。',
-          bestAnswer:
-            '最优答案：正确。根据题目涉及的定义或规则，题干中的说法没有与基本条件冲突，因此该判断为正确。'
-        },
-        {
-          questionNo: '第 5 题',
-          questionType: '选择题',
-          simpleAnswer: 'C',
-          balancedAnswer: '答案：C。C 选项覆盖了题目中的关键条件。',
-          bestAnswer:
-            '最优答案：C。题干要求选择最全面、最准确的选项。C 选项不仅符合题目条件，而且表达更完整，因此优于其他选项。'
-        }
+      capturedAt:
+        new Date().toISOString(),
+
+      summary:
+        'AI 分析完成：画面中未发现明显异常。',
+
+      riskLevel: 'low',
+      confidence: 0.92,
+
+      findings: [
+        '画面亮度正常',
+        '未检测到明显危险行为',
+        '摄像头画面无遮挡'
       ],
-      imageData
+
+      suggestion:
+        '建议继续保持当前摄像头角度。'
     })
   }
 
-  return request.post(`/api/cameras/${cameraId}/analysis`, {
-    image: imageData
-  })
+  return request.post(
+    `/api/cameras/${encodeURIComponent(cameraId)}/analysis`,
+    {
+      image: imageData
+    }
+  )
 }
