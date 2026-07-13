@@ -1,194 +1,218 @@
 <template>
-  <div>
-    <AppHeader />
-    <div class="camera-view-page">
-      <header class="page-header">
-        <div>
-          <button class="back-link" type="button" @click="goBack">
-            ← 返回摄像头列表
-          </button>
+  <AppHeader />
 
-          <h1>{{ currentCamera?.name || '摄像头播放' }}</h1>
-
-          <p class="subtitle">
-            {{ currentCamera?.location || '正在查看摄像头画面' }}
-          </p>
-        </div>
-
-        <span v-if="!loading && !accessDenied" class="access-status">
-          当前可以访问
-        </span>
-      </header>
-
-      <section v-if="loading" class="state-card">
-        正在加载摄像头...
-      </section>
-
-      <section v-else-if="accessDenied" class="state-card error">
-        <h2>当前无法访问摄像头</h2>
-
-        <p>
-          {{ accessMessage || '当前时间段不允许访问该摄像头' }}
-        </p>
-
-        <button class="back-button" type="button" @click="goBack">
-          返回摄像头列表
+  <main class="camera-view-page">
+    <header class="page-header">
+      <div>
+        <button class="back-link" type="button" @click="goBack">
+          ← 返回摄像头列表
         </button>
-      </section>
 
-      <section v-else class="content-layout">
-        <div class="main-panel">
-          <div class="player-card">
-            <div class="player-card-header">
-              <div>
-                <h2>实时摄像头画面</h2>
+        <h1>{{ currentCamera?.name || '摄像头播放' }}</h1>
 
-                <p>
-                  访问时间：
-                  {{ accessStartTime }}
-                  -
-                  {{ accessEndTime }}
-                </p>
-              </div>
+        <p class="subtitle">
+          {{ currentCamera?.location || '正在查看摄像头画面' }}
+        </p>
+      </div>
 
-              <span v-if="remainingTimeText" class="remaining-time">
-                剩余时间：{{ remainingTimeText }}
-              </span>
-            </div>
+      <span
+        v-if="!loading && !accessDenied"
+        class="access-status"
+      >
+        当前可以访问
+      </span>
+    </header>
 
-            <div class="player-wrapper">
-              <CameraPlayer ref="playerRef" :stream-url="cameraStore.streamUrl" :stream-type="cameraStore.streamType" />
-            </div>
-          </div>
+    <section v-if="loading" class="state-card">
+      正在加载摄像头...
+    </section>
 
-          <!-- <div class="camera-info-card">
-          <h2>摄像头信息</h2>
+    <section
+      v-else-if="accessDenied"
+      class="state-card error"
+    >
+      <h2>当前无法访问摄像头</h2>
 
-          <div class="info-grid">
-            <span>摄像头 ID</span>
-            <strong>{{ cameraId }}</strong>
+      <p>
+        {{ accessMessage || '当前时间段不允许访问该摄像头' }}
+      </p>
 
-            <span>状态</span>
-            <strong>
-              {{ currentCamera?.status || 'online' }}
-            </strong>
+      <button
+        class="back-button"
+        type="button"
+        @click="goBack"
+      >
+        返回摄像头列表
+      </button>
+    </section>
 
-            <span>允许访问时间</span>
-            <strong>
-              {{ accessStartTime }} - {{ accessEndTime }}
-            </strong>
-
-            <span>播放类型</span>
-            <strong>
-              {{ cameraStore.streamType || 'iframe' }}
-            </strong>
-
-            <span>剩余访问时间</span>
-            <strong>
-              {{ remainingTimeText || '--:--:--' }}
-            </strong>
-          </div>
-        </div> -->
-        </div>
-
-        <aside class="analysis-panel">
-          <div class="panel-header">
+    <section v-else class="content-layout">
+      <div class="main-panel">
+        <div class="player-card">
+          <div class="player-card-header">
             <div>
-              <p class="eyebrow">AI Analysis</p>
-              <h2>试卷答案分析</h2>
+              <h2>实时摄像头画面</h2>
+
+              <p>
+                访问时间：
+                {{ accessStartTime }}
+                -
+                {{ accessEndTime }}
+              </p>
             </div>
 
-            <span v-if="analysisResult" class="badge badge-success">
-              已生成答案
+            <span
+              v-if="remainingTimeText"
+              class="remaining-time"
+            >
+              剩余时间：{{ remainingTimeText }}
             </span>
           </div>
 
-          <p class="panel-desc">
-            点击按钮后截取当前摄像头画面，并识别画面中的题目和答案。
-          </p>
+          <div class="player-wrapper">
+            <CameraPlayer
+              ref="playerRef"
+              :stream-url="cameraStore.streamUrl"
+              :stream-type="cameraStore.streamType"
+            />
+          </div>
+        </div>
+      </div>
 
-          <div class="answer-mode-selector">
-            <span class="answer-mode-label">请求回答模式</span>
-
-            <div class="answer-mode-buttons">
-              <button v-for="option in answerModeOptions" :key="option.value" type="button" class="answer-mode-button"
-                :class="{
-                  active: answerMode === option.value
-                }" :disabled="analysisLoading" @click="answerMode = option.value">
-                {{ option.label }}
-              </button>
-            </div>
-
-            <p class="answer-mode-tip">
-              选择内容会作为请求参数发送，分析结果仍然显示全部三种答案。
-            </p>
+      <aside class="analysis-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">AI Analysis</p>
+            <h2>试卷答案分析</h2>
           </div>
 
-          <button class="analyze-button" type="button" :disabled="analysisLoading" @click="takeSnapshotAndAnalyze">
-            {{
-              analysisLoading
-                ? '分析中...'
-                : `AI 分析当前画面（${currentAnswerModeLabel}）`
-            }}
-          </button>
+          <span
+            v-if="analysisResult"
+            class="badge badge-success"
+          >
+            已生成答案
+          </span>
+        </div>
 
-          <p v-if="captureError" class="error-text">
-            {{ captureError }}
+        <p class="panel-desc">
+          点击按钮后截取当前摄像头画面，识别画面中的所有题目，并逐题生成答案。
+        </p>
+
+        <div class="answer-mode-selector">
+          <span class="answer-mode-label">请求回答模式</span>
+
+          <div class="answer-mode-buttons">
+            <button
+              v-for="option in answerModeOptions"
+              :key="option.value"
+              type="button"
+              class="answer-mode-button"
+              :class="{
+                active: answerMode === option.value
+              }"
+              :disabled="analysisLoading"
+              @click="answerMode = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+
+          <p class="answer-mode-tip">
+            选择回答模式最简化答案耗时最小，最优答案耗时更长
+          </p>
+        </div>
+
+        <button
+          class="analyze-button"
+          type="button"
+          :disabled="analysisLoading"
+          @click="takeSnapshotAndAnalyze"
+        >
+          {{
+            analysisLoading
+              ? '分析中...'
+              : `AI 分析当前画面（${currentAnswerModeLabel}）`
+          }}
+        </button>
+
+        <p
+          v-if="captureError"
+          class="error-text"
+        >
+          {{ captureError }}
+        </p>
+
+        <div
+          v-if="analysisResult"
+          class="analysis-content"
+        >
+          <p class="analysis-summary">
+            {{ analysisResult.summary }}
           </p>
 
-          <div v-if="analysisResult" class="analysis-content">
-            <p class="analysis-summary">
-              {{ analysisResult.summary }}
-            </p>
+          <div class="info-grid compact">
+            <span>分析时间</span>
+            <strong>
+              {{ formatDateTime(analysisResult.capturedAt) }}
+            </strong>
 
-            <div class="info-grid compact">
-              <span>分析时间</span>
-              <strong>
-                {{ formatDateTime(analysisResult.capturedAt) }}
-              </strong>
+            <span>置信度</span>
+            <strong>{{ confidenceText }}</strong>
 
-              <span>置信度</span>
-              <strong>{{ confidenceText }}</strong>
-
-              <!-- <span>识别题目数</span>
+            <span>识别题目数</span>
             <strong>
               {{ analysisResult.questions?.length || 0 }} 道
-            </strong> -->
+            </strong>
+          </div>
+
+          <div
+            v-if="!analysisResult.questions?.length"
+            class="empty-result"
+          >
+            当前画面中未识别到明确题目，请调整画面后重新分析。
+          </div>
+
+          <div
+            v-for="(question, index) in analysisResult.questions"
+            :key="`${question.questionNo || 'question'}-${index}`"
+            class="question-answer-card"
+          >
+            <div class="question-answer-header">
+              <h3>
+                {{ question.questionNo || `第 ${index + 1} 题` }}
+              </h3>
+
+              <span>
+                {{ question.questionType || '识别题目' }}
+              </span>
             </div>
 
-            <div v-for="question in analysisResult.questions" :key="question.questionNo" class="question-answer-card">
-              <div class="question-answer-header">
-                <h3>{{ question.questionNo }}</h3>
+            <p
+              v-if="question.questionTitle"
+              class="question-title"
+            >
+              {{ question.questionTitle }}
+            </p>
 
-                <span>
-                  {{ question.questionType }}
-                </span>
-              </div>
+            <div class="answer-block simple-answer">
+              <h4>最简化答案</h4>
+              <p>{{ question.simpleAnswer || '暂无答案' }}</p>
+            </div>
 
-              <p v-if="question.questionTitle" class="question-title">
-                {{ question.questionTitle }}
-              </p>
+            <div class="answer-block balanced-answer">
+              <h4>平衡答案</h4>
+              <p>{{ question.balancedAnswer || '暂无答案' }}</p>
+            </div>
 
-              <div class="answer-block simple-answer">
-                <h4>最简化答案</h4>
-                <p>{{ question.simpleAnswer }}</p>
-              </div>
-
-              <div class="answer-block balanced-answer">
-                <h4>平衡答案</h4>
-                <p>{{ question.balancedAnswer }}</p>
-              </div>
-
-              <div class="answer-block best-answer">
-                <h4>最优答案</h4>
-                <p>{{ question.bestAnswer }}</p>
-              </div>
+            <div class="answer-block best-answer">
+              <h4>最优答案</h4>
+              <p>{{ question.bestAnswer || '暂无答案' }}</p>
             </div>
           </div>
-        </aside>
-      </section>
-    </div>
-  </div>
+        </div>
+      </aside>
+    </section>
+  </main>
 </template>
 
 <script setup>
@@ -199,6 +223,7 @@ import {
   ref
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+
 import AppHeader from '../components/AppHeader.vue'
 import CameraPlayer from '../components/CameraPlayer.vue'
 import { analyzeCameraSnapshotApi } from '../api/camera'
@@ -289,11 +314,7 @@ const remainingTimeText = computed(() => {
 
   const seconds = totalSeconds % 60
 
-  const timeText = [
-    hours,
-    minutes,
-    seconds
-  ]
+  const timeText = [hours, minutes, seconds]
     .map((value) => {
       return String(value).padStart(2, '0')
     })
@@ -318,11 +339,16 @@ const confidenceText = computed(() => {
 
   const numberValue = Number(confidence)
 
-  if (Number.isNaN(numberValue)) {
+  if (!Number.isFinite(numberValue)) {
     return '-'
   }
 
-  return `${Math.round(numberValue * 100)}%`
+  const normalizedValue =
+    numberValue > 1
+      ? numberValue
+      : numberValue * 100
+
+  return `${Math.round(normalizedValue)}%`
 })
 
 const currentAnswerModeLabel = computed(() => {
@@ -379,15 +405,6 @@ async function initPage() {
       accessResult.endTime ||
       accessEndTime.value
 
-    /*
-     * 这里一定不能使用：
-     *
-     * streamResult.expiresAt
-     * cameraStore.expiresAt
-     *
-     * expiresAt 通常只是临时播放地址的过期时间，
-     * 可能只有 5 分钟，并不是用户权限结束时间。
-     */
     startCountdown({
       accessStartTime: startTime,
       accessEndTime: endTime,
@@ -416,9 +433,7 @@ function startCountdown({
   stopCountdown()
 
   const serverDate = parseDateTime(serverTime)
-
-  const correctedServerNow =
-    serverDate || new Date()
+  const correctedServerNow = serverDate || new Date()
 
   serverTimeOffset =
     correctedServerNow.getTime() - Date.now()
@@ -480,14 +495,6 @@ function resolveAccessEndDate({
     return null
   }
 
-  /*
-   * 后端直接返回完整日期时间时直接使用。
-   *
-   * 支持：
-   * 2026-07-13T23:59:00
-   * 2026-07-13T23:59:00+08:00
-   * 2026-07-13 23:59:00
-   */
   if (
     /^\d{4}-\d{2}-\d{2}/.test(
       String(accessEndTime).trim()
@@ -527,17 +534,6 @@ function resolveAccessEndDate({
     0
   )
 
-  /*
-   * 普通访问区间：
-   * 00:00 - 23:59
-   *
-   * start < end，不需要跨天。
-   *
-   * 跨天访问区间：
-   * 22:00 - 02:00
-   *
-   * start >= end。
-   */
   const isCrossDay =
     endDate.getTime() <= startDate.getTime()
 
@@ -545,22 +541,12 @@ function resolveAccessEndDate({
     return endDate
   }
 
-  /*
-   * 当前时间位于开始时间之后：
-   * 例如当前 23:00，区间 22:00 - 02:00，
-   * 结束时间应该是第二天 02:00。
-   */
   if (
     serverNow.getTime() >= startDate.getTime()
   ) {
     endDate.setDate(endDate.getDate() + 1)
   }
 
-  /*
-   * 当前时间位于凌晨：
-   * 例如当前 01:00，区间 22:00 - 02:00，
-   * 结束时间就是今天 02:00。
-   */
   return endDate
 }
 
@@ -665,10 +651,6 @@ function startAccessCheckTimer() {
         return
       }
 
-      /*
-       * 每分钟重新获取服务器时间和权限结束时间，
-       * 避免管理员修改权限后页面仍使用旧时间。
-       */
       const startTime =
         accessResult.accessStartTime ||
         accessResult.startTime ||
@@ -714,9 +696,29 @@ async function takeSnapshotAndAnalyze() {
   analysisResult.value = null
 
   try {
+    if (
+      !playerRef.value ||
+      typeof playerRef.value.captureFrame !==
+        'function'
+    ) {
+      throw new Error(
+        '播放器尚未准备好，无法进行 AI 分析'
+      )
+    }
+
+    const imageData =
+      playerRef.value.captureFrame()
+
+    if (!imageData) {
+      throw new Error(
+        '未能获取摄像头截图，请确认视频正在播放'
+      )
+    }
+
     const result =
       await analyzeCameraSnapshotApi(
         cameraId.value,
+        imageData,
         answerMode.value
       )
 
@@ -733,73 +735,220 @@ async function takeSnapshotAndAnalyze() {
   }
 }
 
-function normalizeAnalysisResult(result) {
-  if (!result) {
-    return {
-      capturedAt: new Date().toISOString(),
-      confidence: 0,
-      summary: '未获取到 AI 分析结果。',
-      questions: []
-    }
-  }
+function normalizeAnalysisResult(result = {}) {
+  const rawResult =
+    result?.data &&
+    typeof result.data === 'object'
+      ? result.data
+      : result
 
-  if (Array.isArray(result.questions)) {
+  const normalizeQuestion = (
+    question = {},
+    index = 0
+  ) => {
+    const commonAnswer =
+      question.answer ||
+      question.finalAnswer ||
+      question.final_answer ||
+      ''
+
     return {
-      capturedAt:
-        result.capturedAt ||
-        new Date().toISOString(),
+      questionNo:
+        question.questionNo ||
+        question.question_no ||
+        question.questionNumber ||
+        question.question_number ||
+        question.number ||
+        `第 ${index + 1} 题`,
+
+      questionType:
+        question.questionType ||
+        question.question_type ||
+        question.type ||
+        '识别题目',
+
+      questionTitle:
+        question.questionTitle ||
+        question.question_title ||
+        question.title ||
+        question.question ||
+        question.recognizedText ||
+        question.recognized_text ||
+        '',
+
+      simpleAnswer:
+        question.simpleAnswer ||
+        question.simple_answer ||
+        commonAnswer ||
+        '暂无答案',
+
+      balancedAnswer:
+        question.balancedAnswer ||
+        question.balanced_answer ||
+        commonAnswer ||
+        question.simpleAnswer ||
+        question.simple_answer ||
+        '暂无答案',
+
+      bestAnswer:
+        question.bestAnswer ||
+        question.best_answer ||
+        commonAnswer ||
+        question.balancedAnswer ||
+        question.balanced_answer ||
+        question.simpleAnswer ||
+        question.simple_answer ||
+        '暂无答案',
 
       confidence:
-        result.confidence ?? 0,
-
-      summary:
-        result.summary ||
-        '已完成试卷题目识别和答案生成。',
-
-      questions: result.questions
+        normalizeConfidence(question.confidence)
     }
   }
 
+  let questions = []
+
+  if (Array.isArray(rawResult)) {
+    questions = rawResult
+      .filter(isObject)
+      .map(normalizeQuestion)
+  }
+
+  if (
+    !questions.length &&
+    Array.isArray(rawResult.questions)
+  ) {
+    questions = rawResult.questions
+      .filter(isObject)
+      .map(normalizeQuestion)
+  }
+
+  if (
+    !questions.length &&
+    Array.isArray(rawResult.items)
+  ) {
+    questions = rawResult.items
+      .filter(isObject)
+      .map(normalizeQuestion)
+  }
+
+  if (
+    !questions.length &&
+    Array.isArray(rawResult.results)
+  ) {
+    questions = rawResult.results
+      .filter(isObject)
+      .map(normalizeQuestion)
+  }
+
+  if (!questions.length) {
+    const hasSingleQuestion =
+      rawResult.questionNo ||
+      rawResult.question_no ||
+      rawResult.questionTitle ||
+      rawResult.question_title ||
+      rawResult.question ||
+      rawResult.recognizedText ||
+      rawResult.recognized_text ||
+      rawResult.simpleAnswer ||
+      rawResult.simple_answer ||
+      rawResult.balancedAnswer ||
+      rawResult.balanced_answer ||
+      rawResult.bestAnswer ||
+      rawResult.best_answer ||
+      rawResult.answer
+
+    if (hasSingleQuestion) {
+      questions = [
+        normalizeQuestion(rawResult, 0)
+      ]
+    }
+  }
+
+  const confidence =
+    normalizeConfidence(rawResult.confidence) ??
+    calculateAverageConfidence(questions)
+
   return {
+    cameraId:
+      rawResult.cameraId ||
+      rawResult.camera_id ||
+      cameraId.value,
+
     capturedAt:
-      result.capturedAt ||
+      rawResult.capturedAt ||
+      rawResult.captured_at ||
+      rawResult.analysisTime ||
+      rawResult.analysis_time ||
       new Date().toISOString(),
 
-    confidence:
-      result.confidence ?? 0,
+    confidence,
+
+    questionCount:
+      rawResult.questionCount ??
+      rawResult.question_count ??
+      questions.length,
 
     summary:
-      result.summary ||
-      '已完成试卷题目识别和答案生成。',
+      rawResult.summary ||
+      (
+        questions.length
+          ? `本次共识别到 ${questions.length} 道题目，已完成答案分析。`
+          : '当前画面中未识别到明确题目。'
+      ),
 
-    questions: [
-      {
-        questionNo:
-          result.questionNo || '第 1 题',
-
-        questionType:
-          result.questionType || '识别题目',
-
-        questionTitle:
-          result.questionTitle || '',
-
-        simpleAnswer:
-          result.simpleAnswer ||
-          result.answer ||
-          '暂无答案',
-
-        balancedAnswer:
-          result.balancedAnswer ||
-          result.answer ||
-          '暂无答案',
-
-        bestAnswer:
-          result.bestAnswer ||
-          result.answer ||
-          '暂无答案'
-      }
-    ]
+    questions
   }
+}
+
+function isObject(value) {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value)
+  )
+}
+
+function normalizeConfidence(value) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ''
+  ) {
+    return null
+  }
+
+  const numberValue = Number(value)
+
+  if (!Number.isFinite(numberValue)) {
+    return null
+  }
+
+  return numberValue > 1
+    ? numberValue / 100
+    : numberValue
+}
+
+function calculateAverageConfidence(
+  questions = []
+) {
+  const values = questions
+    .map((question) => {
+      return normalizeConfidence(
+        question.confidence
+      )
+    })
+    .filter((value) => value !== null)
+
+  if (!values.length) {
+    return 0
+  }
+
+  const total = values.reduce(
+    (sum, value) => sum + value,
+    0
+  )
+
+  return total / values.length
 }
 
 function formatDateTime(value) {
@@ -861,7 +1010,6 @@ onBeforeUnmount(() => {
   background: transparent;
   color: #2563eb;
   font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
 }
 
@@ -873,14 +1021,12 @@ onBeforeUnmount(() => {
   margin: 0;
   color: #111827;
   font-size: 30px;
-  font-weight: 800;
   line-height: 1.2;
 }
 
 .subtitle {
   margin: 8px 0 0;
   color: #6b7280;
-  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -925,15 +1071,15 @@ onBeforeUnmount(() => {
   padding: 10px 18px;
   background: #2563eb;
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .content-layout {
   display: grid;
   grid-template-columns:
-    minmax(0, 1fr) 400px;
+    minmax(0, 1fr)
+    400px;
   gap: 24px;
   align-items: start;
   max-width: 1280px;
@@ -964,13 +1110,11 @@ onBeforeUnmount(() => {
   margin: 0;
   color: #111827;
   font-size: 23px;
-  font-weight: 800;
 }
 
 .player-card-header p {
   margin: 8px 0 0;
   color: #64748b;
-  font-size: 14px;
 }
 
 .remaining-time {
@@ -991,9 +1135,12 @@ onBeforeUnmount(() => {
   background: #1f1f1f;
 }
 
-.camera-info-card,
 .analysis-panel {
-  margin-top: 20px;
+  position: sticky;
+  top: 24px;
+  margin-top: 0;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
   padding: 22px;
   border-radius: 18px;
   background: #ffffff;
@@ -1001,43 +1148,9 @@ onBeforeUnmount(() => {
     0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
-.camera-info-card h2,
 .analysis-panel h2 {
   margin: 0;
   color: #111827;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns:
-    120px minmax(0, 1fr);
-  gap: 12px 16px;
-  margin-top: 18px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.info-grid strong {
-  color: #111827;
-  font-weight: 700;
-  word-break: break-word;
-}
-
-.info-grid.compact {
-  grid-template-columns:
-    100px minmax(0, 1fr);
-  padding: 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #f8fafc;
-}
-
-.analysis-panel {
-  position: sticky;
-  top: 24px;
-  margin-top: 0;
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
 }
 
 .panel-header {
@@ -1052,23 +1165,16 @@ onBeforeUnmount(() => {
   margin: 0 0 6px;
   color: #2563eb;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.panel-header h2 {
-  color: #0f172a;
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.3;
-}
-
 .panel-desc {
   margin: 0 0 18px;
-  color: #64748b;
+  color: #6b7280;
   font-size: 14px;
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .badge {
@@ -1086,144 +1192,93 @@ onBeforeUnmount(() => {
 
 .answer-mode-selector {
   margin-bottom: 16px;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid #dbeafe;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #f8fbff;
 }
 
 .answer-mode-label {
   display: block;
-  margin-bottom: 12px;
-  color: #1e293b;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.4;
+  margin-bottom: 10px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .answer-mode-buttons {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .answer-mode-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-width: 0;
-  min-height: 44px;
-  padding: 10px 12px;
   border: 1px solid #cbd5e1;
-  border-radius: 12px;
+  border-radius: 10px;
+  padding: 10px 8px;
   background: #ffffff;
-  color: #334155 !important;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    "Microsoft YaHei",
-    Arial,
-    sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: center;
-  white-space: nowrap;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s;
 }
 
 .answer-mode-button:hover:not(:disabled) {
+  border-color: #60a5fa;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.answer-mode-button.active {
   border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8 !important;
-}
-
-.answer-mode-button:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.answer-mode-button.active,
-.answer-mode-button.active:hover,
-.answer-mode-button.active:focus,
-.answer-mode-button.active:disabled {
-  border-color: #2563eb !important;
-  background: #2563eb !important;
-  color: #ffffff !important;
-  font-weight: 700;
+  background: #2563eb;
+  color: #ffffff;
   box-shadow:
-    0 6px 14px rgba(37, 99, 235, 0.22);
+    0 8px 18px rgba(37, 99, 235, 0.25);
 }
 
 .answer-mode-button:disabled {
   cursor: not-allowed;
-}
-
-.answer-mode-button:disabled:not(.active) {
-  border-color: #e2e8f0;
-  background: #f8fafc;
-  color: #94a3b8 !important;
+  opacity: 0.7;
 }
 
 .answer-mode-tip {
   margin: 12px 0 0;
   color: #64748b;
   font-size: 12px;
-  font-weight: 400;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .analyze-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
-  min-height: 54px;
-  padding: 13px 18px;
   border: none;
-  border-radius: 15px;
+  border-radius: 14px;
+  padding: 14px 18px;
   background: #2563eb;
-  color: #ffffff !important;
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    "Microsoft YaHei",
-    Arial,
-    sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
   cursor: pointer;
   box-shadow:
-    0 8px 18px rgba(37, 99, 235, 0.2);
+    0 10px 20px rgba(37, 99, 235, 0.22);
   transition:
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
+    background 0.2s,
+    transform 0.2s;
 }
 
 .analyze-button:hover:not(:disabled) {
   background: #1d4ed8;
-  color: #ffffff !important;
-  box-shadow:
-    0 10px 22px rgba(37, 99, 235, 0.28);
-}
-
-.analyze-button:active:not(:disabled) {
-  transform: scale(0.99);
+  transform: translateY(-1px);
 }
 
 .analyze-button:disabled {
   background: #93c5fd;
-  color: #ffffff !important;
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -1244,21 +1299,57 @@ onBeforeUnmount(() => {
 
 .analysis-summary {
   margin: 0 0 14px;
-  padding: 16px;
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 12px;
   background: #eff6ff;
   color: #1e3a8a;
+  line-height: 1.7;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns:
+    120px
+    minmax(0, 1fr);
+  gap: 12px 16px;
+  margin-top: 18px;
+  color: #6b7280;
   font-size: 14px;
-  font-weight: 600;
-  line-height: 1.8;
+}
+
+.info-grid strong {
+  color: #111827;
+  word-break: break-word;
+}
+
+.info-grid.compact {
+  grid-template-columns:
+    100px
+    minmax(0, 1fr);
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.empty-result {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.7;
 }
 
 .question-answer-card {
   margin-top: 16px;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #ffffff;
+  box-shadow:
+    0 8px 20px rgba(15, 23, 42, 0.05);
 }
 
 .question-answer-header {
@@ -1271,9 +1362,7 @@ onBeforeUnmount(() => {
 .question-answer-header h3 {
   margin: 0;
   color: #111827;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.4;
+  font-size: 17px;
 }
 
 .question-answer-header span {
@@ -1282,34 +1371,31 @@ onBeforeUnmount(() => {
   background: #f1f5f9;
   color: #475569;
   font-size: 12px;
-  font-weight: 500;
 }
 
 .question-title {
   margin: 12px 0 0;
   color: #334155;
-  font-size: 14px;
-  line-height: 1.8;
+  line-height: 1.7;
+  white-space: pre-wrap;
 }
 
 .answer-block {
   margin-top: 12px;
-  padding: 14px;
+  padding: 13px;
   border-radius: 12px;
 }
 
 .answer-block h4 {
-  margin: 0 0 8px;
+  margin: 0 0 7px;
   color: #0f172a;
   font-size: 14px;
-  font-weight: 800;
 }
 
 .answer-block p {
   margin: 0;
   color: #334155;
-  font-size: 14px;
-  line-height: 1.8;
+  line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -1346,10 +1432,6 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
-  .page-header h1 {
-    font-size: 26px;
-  }
-
   .player-card-header {
     flex-direction: column;
   }
@@ -1358,35 +1440,13 @@ onBeforeUnmount(() => {
     align-self: flex-start;
   }
 
-  .content-layout {
-    gap: 18px;
-  }
-
-  .analysis-panel {
-    padding: 18px;
-  }
-
-  .answer-mode-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .answer-mode-button {
-    min-height: 46px;
-    font-size: 15px;
-  }
-
-  .analyze-button {
-    min-height: 54px;
-    font-size: 15px;
-  }
-
   .info-grid,
   .info-grid.compact {
     grid-template-columns: 1fr;
   }
 
-  .question-answer-header {
-    align-items: flex-start;
+  .answer-mode-buttons {
+    grid-template-columns: 1fr;
   }
 }
 </style>

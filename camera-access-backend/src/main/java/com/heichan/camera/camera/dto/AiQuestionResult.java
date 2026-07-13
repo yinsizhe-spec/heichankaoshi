@@ -3,28 +3,23 @@ package com.heichan.camera.camera.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * AI 返回的结构化题目结果。
+ * AI 返回的多题分析结果。
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AiQuestionResult {
 
-    private String questionNo;
+    /**
+     * 本次画面分析总结。
+     */
+    private String summary;
 
-    private String questionTitle;
-
-    private String recognizedText;
-
-    private String questionType;
-
-    private String simpleAnswer;
-
-    private String balancedAnswer;
-
-    private String bestAnswer;
-
-    private BigDecimal confidence;
+    /**
+     * 识别出的全部题目。
+     */
+    private List<AiQuestionItem> questions = new ArrayList<>();
 }

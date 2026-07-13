@@ -1,6 +1,7 @@
 package com.heichan.camera.camera.service;
 
 import com.heichan.camera.camera.ai.QuestionAiClient;
+import com.heichan.camera.camera.dto.AiQuestionItem;
 import com.heichan.camera.camera.dto.AiQuestionResult;
 import com.heichan.camera.camera.dto.CameraAnalysisRequest;
 import com.heichan.camera.camera.dto.CameraAnalysisResponse;
@@ -12,13 +13,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Set;
 
 /**
- * 摄像头 AI 搜题服务。
+ * 摄像头 AI 多题分析服务。
  */
 @Service
 @RequiredArgsConstructor
@@ -28,9 +32,7 @@ public class CameraAnalysisService {
             Set.of("simple", "balanced", "best");
 
     private final CameraAccessService cameraAccessService;
-
     private final CameraSnapshotService cameraSnapshotService;
-
     private final QuestionAiClient questionAiClient;
 
     @Value("${app.time-zone:Asia/Kuala_Lumpur}")
@@ -41,28 +43,11 @@ public class CameraAnalysisService {
             String cameraCode,
             CameraAnalysisRequest request
     ) {
-        if (!StringUtils.hasText(username)) {
-            throw new BusinessException(
-                    HttpStatus.UNAUTHORIZED,
-                    "AUTH_UNAUTHORIZED",
-                    "请先登录"
-            );
-        }
+        validateUsername(username);
+        validateCameraCode(cameraCode);
 
-        if (!StringUtils.hasText(cameraCode)) {
-            throw new BusinessException(
-                    HttpStatus.BAD_REQUEST,
-                    "CAMERA_ID_REQUIRED",
-                    "摄像头编号不能为空"
-            );
-        }
+        String normalizedCameraCode = cameraCode.trim();
 
-        String normalizedCameraCode =
-                cameraCode.trim();
-
-        /*
-         * 每次搜题都重新校验摄像头访问权限。
-         */
         cameraAccessService.checkAccessOrThrow(
                 username,
                 normalizedCameraCode
@@ -74,21 +59,22 @@ public class CameraAnalysisService {
                         : request.getAnswerMode()
         );
 
-        /*
-         * 从原始流截取当前帧。
-         */
         byte[] imageBytes =
                 cameraSnapshotService.captureSnapshot(
                         normalizedCameraCode
                 );
 
-        String base64Image =
-                Base64.getEncoder()
-                        .encodeToString(imageBytes);
+        if (imageBytes == null || imageBytes.length == 0) {
+            throw new BusinessException(
+                    HttpStatus.BAD_GATEWAY,
+                    "CAMERA_SNAPSHOT_EMPTY",
+                    "摄像头截图内容为空"
+            );
+        }
 
-        /*
-         * 调用 QuickRouter 视觉模型。
-         */
+        String base64Image = Base64.getEncoder()
+                .encodeToString(imageBytes);
+
         AiQuestionResult aiResult =
                 questionAiClient.analyzeQuestion(
                         "image/jpeg",
@@ -96,61 +82,194 @@ public class CameraAnalysisService {
                         answerMode
                 );
 
+        List<AiQuestionItem> questions =
+                normalizeQuestions(aiResult);
+
         return CameraAnalysisResponse.builder()
                 .cameraId(normalizedCameraCode)
                 .capturedAt(
-                        OffsetDateTime.now(
-                                resolveZoneId()
-                        )
-                )
-                .questionNo(
-                        defaultString(
-                                aiResult.getQuestionNo(),
-                                "未识别题号"
-                        )
-                )
-                .questionTitle(
-                        defaultString(
-                                aiResult.getQuestionTitle(),
-                                "未识别题目"
-                        )
-                )
-                .recognizedText(
-                        defaultString(
-                                aiResult.getRecognizedText(),
-                                ""
-                        )
-                )
-                .questionType(
-                        defaultString(
-                                aiResult.getQuestionType(),
-                                "unknown"
-                        )
-                )
-                .simpleAnswer(
-                        defaultString(
-                                aiResult.getSimpleAnswer(),
-                                "暂时无法确定答案"
-                        )
-                )
-                .balancedAnswer(
-                        defaultString(
-                                aiResult.getBalancedAnswer(),
-                                "暂时无法生成简要解析"
-                        )
-                )
-                .bestAnswer(
-                        defaultString(
-                                aiResult.getBestAnswer(),
-                                "暂时无法生成完整解析"
-                        )
+                        OffsetDateTime.now(resolveZoneId())
                 )
                 .confidence(
-                        aiResult.getConfidence() == null
-                                ? BigDecimal.ZERO
-                                : aiResult.getConfidence()
+                        calculateAverageConfidence(questions)
                 )
+                .questionCount(questions.size())
+                .summary(
+                        buildSummary(
+                                aiResult,
+                                questions.size()
+                        )
+                )
+                .questions(questions)
                 .build();
+    }
+
+    private List<AiQuestionItem> normalizeQuestions(
+            AiQuestionResult aiResult
+    ) {
+        if (aiResult == null) {
+            throw new BusinessException(
+                    HttpStatus.BAD_GATEWAY,
+                    "AI_EMPTY_RESULT",
+                    "AI 未返回有效分析结果"
+            );
+        }
+
+        List<AiQuestionItem> source =
+                aiResult.getQuestions();
+
+        if (source == null || source.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<AiQuestionItem> result =
+                new ArrayList<>();
+
+        int index = 1;
+
+        for (AiQuestionItem item : source) {
+            if (item == null) {
+                continue;
+            }
+
+            item.setQuestionNo(
+                    defaultString(
+                            item.getQuestionNo(),
+                            "第 " + index + " 题"
+                    )
+            );
+
+            item.setQuestionTitle(
+                    defaultString(
+                            item.getQuestionTitle(),
+                            defaultString(
+                                    item.getRecognizedText(),
+                                    "未识别题目"
+                            )
+                    )
+            );
+
+            item.setRecognizedText(
+                    defaultString(
+                            item.getRecognizedText(),
+                            item.getQuestionTitle()
+                    )
+            );
+
+            item.setQuestionType(
+                    defaultString(
+                            item.getQuestionType(),
+                            "unknown"
+                    )
+            );
+
+            item.setSimpleAnswer(
+                    defaultString(
+                            item.getSimpleAnswer(),
+                            "No clear answer detected."
+                    )
+            );
+
+            item.setBalancedAnswer(
+                    defaultString(
+                            item.getBalancedAnswer(),
+                            "Answer: "
+                                    + item.getSimpleAnswer()
+                                    + " 中文解释：AI 未返回额外解释。"
+                    )
+            );
+
+            item.setBestAnswer(
+                    defaultString(
+                            item.getBestAnswer(),
+                            "Final Answer: "
+                                    + item.getSimpleAnswer()
+                                    + " 中文详细解释：AI 未返回额外详细解释。"
+                    )
+            );
+
+            item.setConfidence(
+                    normalizeConfidence(
+                            item.getConfidence()
+                    )
+            );
+
+            result.add(item);
+            index++;
+        }
+
+        return result;
+    }
+
+    private BigDecimal calculateAverageConfidence(
+            List<AiQuestionItem> questions
+    ) {
+        if (questions == null || questions.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        int count = 0;
+
+        for (AiQuestionItem question : questions) {
+            if (question == null
+                    || question.getConfidence() == null) {
+                continue;
+            }
+
+            total = total.add(
+                    normalizeConfidence(
+                            question.getConfidence()
+                    )
+            );
+            count++;
+        }
+
+        if (count == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return total.divide(
+                BigDecimal.valueOf(count),
+                4,
+                RoundingMode.HALF_UP
+        );
+    }
+
+    private BigDecimal normalizeConfidence(
+            BigDecimal confidence
+    ) {
+        if (confidence == null) {
+            return BigDecimal.ZERO;
+        }
+
+        if (confidence.compareTo(BigDecimal.ZERO) < 0) {
+            return BigDecimal.ZERO;
+        }
+
+        if (confidence.compareTo(BigDecimal.ONE) > 0) {
+            return BigDecimal.ONE;
+        }
+
+        return confidence;
+    }
+
+    private String buildSummary(
+            AiQuestionResult aiResult,
+            int questionCount
+    ) {
+        if (aiResult != null
+                && StringUtils.hasText(aiResult.getSummary())) {
+            return aiResult.getSummary().trim();
+        }
+
+        if (questionCount == 0) {
+            return "当前画面中未识别到明确题目。";
+        }
+
+        return "本次共识别到 "
+                + questionCount
+                + " 道题目，已生成英文答案和中文解释。";
     }
 
     private String normalizeAnswerMode(String value) {
@@ -169,12 +288,32 @@ public class CameraAnalysisService {
         return mode;
     }
 
+    private void validateUsername(String username) {
+        if (!StringUtils.hasText(username)) {
+            throw new BusinessException(
+                    HttpStatus.UNAUTHORIZED,
+                    "AUTH_UNAUTHORIZED",
+                    "请先登录"
+            );
+        }
+    }
+
+    private void validateCameraCode(String cameraCode) {
+        if (!StringUtils.hasText(cameraCode)) {
+            throw new BusinessException(
+                    HttpStatus.BAD_REQUEST,
+                    "CAMERA_ID_REQUIRED",
+                    "摄像头编号不能为空"
+            );
+        }
+    }
+
     private String defaultString(
             String value,
             String defaultValue
     ) {
         return StringUtils.hasText(value)
-                ? value
+                ? value.trim()
                 : defaultValue;
     }
 

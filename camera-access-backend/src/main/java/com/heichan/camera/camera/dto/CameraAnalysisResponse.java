@@ -5,9 +5,10 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
- * 摄像头 AI 搜题响应。
+ * 摄像头 AI 多题分析响应。
  */
 @Data
 @Builder
@@ -17,19 +18,11 @@ public class CameraAnalysisResponse {
 
     private OffsetDateTime capturedAt;
 
-    private String questionNo;
-
-    private String questionTitle;
-
-    private String recognizedText;
-
-    private String questionType;
-
-    private String simpleAnswer;
-
-    private String balancedAnswer;
-
-    private String bestAnswer;
-
     private BigDecimal confidence;
+
+    private Integer questionCount;
+
+    private String summary;
+
+    private List<AiQuestionItem> questions;
 }

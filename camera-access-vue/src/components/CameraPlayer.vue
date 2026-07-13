@@ -12,9 +12,9 @@
       等待加载视频流
     </div>
 
-    <div class="player-mode">
+    <!-- <div class="player-mode">
       WebRTC 低延迟模式
-    </div>
+    </div> -->
   </div>
 </template>
 

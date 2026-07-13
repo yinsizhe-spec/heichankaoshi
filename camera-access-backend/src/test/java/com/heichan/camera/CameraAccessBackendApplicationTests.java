@@ -116,7 +116,7 @@ class CameraAccessBackendApplicationTests {
 	 * 本方法支持重复运行：
 	 * 数据存在时更新，不存在时创建。
 	 */
-	@Test
+//	@Test
 	void createOrUpdateAllTestData() {
 		System.out.println();
 		System.out.println("========================================");
@@ -162,7 +162,7 @@ class CameraAccessBackendApplicationTests {
 	 * 执行前必须先运行：
 	 * createOrUpdateAllTestData()
 	 */
-	@Test
+//	@Test
 	void updatePasswordAndCameraPermission() {
 		String newPassword = "NewCamera@654321";
 
@@ -273,7 +273,7 @@ class CameraAccessBackendApplicationTests {
 	/**
 	 * 单独关闭用户摄像头权限。
 	 */
-	@Test
+//	@Test
 	void disableCameraPermission() {
 		AppUser user = findUserByUsername(TEST_USERNAME);
 
@@ -331,7 +331,7 @@ class CameraAccessBackendApplicationTests {
 	/**
 	 * 单独重新启用摄像头权限。
 	 */
-	@Test
+//	@Test
 	void enableCameraPermission() {
 		AppUser user = findUserByUsername(TEST_USERNAME);
 
