@@ -31,7 +31,10 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const error = ref('')
-const form = reactive({ username: 'admin', password: '123456' })
+const form = reactive({
+  username: '',
+  password: ''
+})
 
 async function handleLogin() {
   error.value = ''
