@@ -11,14 +11,11 @@ import org.apache.ibatis.annotations.Select;
 import java.util.List;
 
 /**
- * 摄像头数据访问接口。
+ * 摄像头 Mapper。
  */
 @Mapper
 public interface CameraMapper extends BaseMapper<Camera> {
 
-    /**
-     * 查询当前用户被分配的摄像头列表。
-     */
     @Select("""
             SELECT
                 c.id AS camera_database_id,
@@ -43,9 +40,6 @@ public interface CameraMapper extends BaseMapper<Camera> {
             @Param("userId") Long userId
     );
 
-    /**
-     * 查询当前用户对指定摄像头的访问权限。
-     */
     @Select("""
             SELECT
                 u.id AS user_id,
@@ -84,9 +78,7 @@ public interface CameraMapper extends BaseMapper<Camera> {
     );
 
     /**
-     * 根据摄像头业务编号查询摄像头。
-     *
-     * 该方法会读取原始播放地址，只允许后端内部使用。
+     * 根据业务编号查询摄像头完整信息。
      */
     @Select("""
             SELECT
@@ -97,6 +89,7 @@ public interface CameraMapper extends BaseMapper<Camera> {
                 status,
                 stream_type,
                 stream_source_url,
+                source_stream_url,
                 snapshot_url,
                 description,
                 is_enabled,

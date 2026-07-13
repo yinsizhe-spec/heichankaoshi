@@ -1,16 +1,20 @@
 server:
   port: 8080
+
 spring:
   application:
     name: camera-access-backend
+
   datasource:
     url: jdbc:mysql://64.176.57.254:3306/heichan?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Kuala_Lumpur&allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: yinsizhe
     driver-class-name: com.mysql.cj.jdbc.Driver
-    jackson:
-      time-zone: Asia/Kuala_Lumpur
-      default-property-inclusion: non_null
+
+  jackson:
+    time-zone: Asia/Kuala_Lumpur
+    default-property-inclusion: non_null
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -20,11 +24,31 @@ mybatis-plus:
     db-config:
       id-type: auto
 
+app:
+  time-zone: Asia/Kuala_Lumpur
+
+  stream:
+    expiration-seconds: 300
+
+  ffmpeg:
+    # Linux 或已配置 PATH 的 Windows
+    path: ffmpeg
+
+    snapshot-timeout-seconds: 20
+    max-image-size-bytes: 5242880
+    max-width: 1600
+
 security:
   jwt:
-    secret: camera-access-jwt-secret-key-please-change-this-to-at-least-32-bytes
+    secret: camera-access-system-jwt-secret-key-2026-production
     expiration-seconds: 7200
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
+ai:
+  quickrouter:
+    base-url: https://api.quickrouter.ai/v1
+    api-key: sk-wTqK9J3BrmEyyvKGSeSZ0NeS4vaBEhNPU2DP4MPuh22lJo8b
+    model: gpt-4o
+    connect-timeout-seconds: 20
+    read-timeout-seconds: 120
+    max-tokens: 2500
+    temperature: 0.35

@@ -14,9 +14,6 @@ import java.time.LocalDateTime;
 @TableName("camera")
 public class Camera {
 
-    /**
-     * 数据库主键。
-     */
     @TableId(type = IdType.AUTO)
     private Long id;
 
@@ -25,14 +22,8 @@ public class Camera {
      */
     private String cameraCode;
 
-    /**
-     * 摄像头名称。
-     */
     private String cameraName;
 
-    /**
-     * 安装位置。
-     */
     private String location;
 
     /**
@@ -41,29 +32,26 @@ public class Camera {
     private String status;
 
     /**
-     * WEBRTC、HLS、IFRAME、MJPEG。
+     * IFRAME、HLS、WEBRTC、MJPEG。
      */
     private String streamType;
 
     /**
-     * 原始播放地址。
-     *
-     * 注意：不能直接返回给普通用户。
+     * 浏览器播放地址。
      */
     private String streamSourceUrl;
 
     /**
-     * 截图地址。
+     * 后端 FFmpeg 截图使用的原始视频流地址。
      */
+    private String sourceStreamUrl;
+
     private String snapshotUrl;
 
-    /**
-     * 摄像头说明。
-     */
     private String description;
 
     /**
-     * 是否启用。
+     * 1启用，0禁用。
      */
     private Integer isEnabled;
 
