@@ -1,3 +1,30 @@
+server:
+  port: 8080
 spring:
   application:
     name: camera-access-backend
+  datasource:
+    url: jdbc:mysql://64.176.57.254:3306/heichan?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Kuala_Lumpur&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: yinsizhe
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jackson:
+      time-zone: Asia/Kuala_Lumpur
+      default-property-inclusion: non_null
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  global-config:
+    db-config:
+      id-type: auto
+
+security:
+  jwt:
+    secret: camera-access-jwt-secret-key-please-change-this-to-at-least-32-bytes
+    expiration-seconds: 7200
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
