@@ -1,6 +1,6 @@
 <template>
   <header class="app-header">
-    <router-link class="logo" to="/dashboard">摄像头访问控制系统</router-link>
+    <router-link class="logo" to="/dashboard">KJ考试终端</router-link>
     <nav>
       <router-link to="/dashboard">摄像头</router-link>
       <router-link to="/profile">个人资料</router-link>

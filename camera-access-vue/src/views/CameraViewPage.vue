@@ -1,82 +1,67 @@
 <template>
-  <div class="camera-view-page">
-    <header class="page-header">
-      <div>
-        <button class="back-link" type="button" @click="goBack">
-          ← 返回摄像头列表
-        </button>
+  <div>
+    <AppHeader />
+    <div class="camera-view-page">
+      <header class="page-header">
+        <div>
+          <button class="back-link" type="button" @click="goBack">
+            ← 返回摄像头列表
+          </button>
 
-        <h1>{{ currentCamera?.name || '摄像头播放' }}</h1>
+          <h1>{{ currentCamera?.name || '摄像头播放' }}</h1>
 
-        <p class="subtitle">
-          {{ currentCamera?.location || '正在查看摄像头画面' }}
-        </p>
-      </div>
-
-      <span
-        v-if="!loading && !accessDenied"
-        class="access-status"
-      >
-        当前可以访问
-      </span>
-    </header>
-
-    <section v-if="loading" class="state-card">
-      正在加载摄像头...
-    </section>
-
-    <section
-      v-else-if="accessDenied"
-      class="state-card error"
-    >
-      <h2>当前无法访问摄像头</h2>
-
-      <p>
-        {{ accessMessage || '当前时间段不允许访问该摄像头' }}
-      </p>
-
-      <button
-        class="back-button"
-        type="button"
-        @click="goBack"
-      >
-        返回摄像头列表
-      </button>
-    </section>
-
-    <section v-else class="content-layout">
-      <div class="main-panel">
-        <div class="player-card">
-          <div class="player-card-header">
-            <div>
-              <h2>实时摄像头画面</h2>
-
-              <p>
-                访问时间：
-                {{ accessStartTime }}
-                -
-                {{ accessEndTime }}
-              </p>
-            </div>
-
-            <span
-              v-if="remainingTimeText"
-              class="remaining-time"
-            >
-              剩余时间：{{ remainingTimeText }}
-            </span>
-          </div>
-
-          <div class="player-wrapper">
-            <CameraPlayer
-              ref="playerRef"
-              :stream-url="cameraStore.streamUrl"
-              :stream-type="cameraStore.streamType"
-            />
-          </div>
+          <p class="subtitle">
+            {{ currentCamera?.location || '正在查看摄像头画面' }}
+          </p>
         </div>
 
-        <!-- <div class="camera-info-card">
+        <span v-if="!loading && !accessDenied" class="access-status">
+          当前可以访问
+        </span>
+      </header>
+
+      <section v-if="loading" class="state-card">
+        正在加载摄像头...
+      </section>
+
+      <section v-else-if="accessDenied" class="state-card error">
+        <h2>当前无法访问摄像头</h2>
+
+        <p>
+          {{ accessMessage || '当前时间段不允许访问该摄像头' }}
+        </p>
+
+        <button class="back-button" type="button" @click="goBack">
+          返回摄像头列表
+        </button>
+      </section>
+
+      <section v-else class="content-layout">
+        <div class="main-panel">
+          <div class="player-card">
+            <div class="player-card-header">
+              <div>
+                <h2>实时摄像头画面</h2>
+
+                <p>
+                  访问时间：
+                  {{ accessStartTime }}
+                  -
+                  {{ accessEndTime }}
+                </p>
+              </div>
+
+              <span v-if="remainingTimeText" class="remaining-time">
+                剩余时间：{{ remainingTimeText }}
+              </span>
+            </div>
+
+            <div class="player-wrapper">
+              <CameraPlayer ref="playerRef" :stream-url="cameraStore.streamUrl" :stream-type="cameraStore.streamType" />
+            </div>
+          </div>
+
+          <!-- <div class="camera-info-card">
           <h2>摄像头信息</h2>
 
           <div class="info-grid">
@@ -104,132 +89,105 @@
             </strong>
           </div>
         </div> -->
-      </div>
-
-      <aside class="analysis-panel">
-        <div class="panel-header">
-          <div>
-            <p class="eyebrow">AI Analysis</p>
-            <h2>试卷答案分析</h2>
-          </div>
-
-          <span
-            v-if="analysisResult"
-            class="badge badge-success"
-          >
-            已生成答案
-          </span>
         </div>
 
-        <p class="panel-desc">
-          点击按钮后截取当前摄像头画面，并识别画面中的题目和答案。
-        </p>
+        <aside class="analysis-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">AI Analysis</p>
+              <h2>试卷答案分析</h2>
+            </div>
 
-        <div class="answer-mode-selector">
-          <span class="answer-mode-label">请求回答模式</span>
-
-          <div class="answer-mode-buttons">
-            <button
-              v-for="option in answerModeOptions"
-              :key="option.value"
-              type="button"
-              class="answer-mode-button"
-              :class="{
-                active: answerMode === option.value
-              }"
-              :disabled="analysisLoading"
-              @click="answerMode = option.value"
-            >
-              {{ option.label }}
-            </button>
+            <span v-if="analysisResult" class="badge badge-success">
+              已生成答案
+            </span>
           </div>
 
-          <p class="answer-mode-tip">
-            选择内容会作为请求参数发送，分析结果仍然显示全部三种答案。
-          </p>
-        </div>
-
-        <button
-          class="analyze-button"
-          type="button"
-          :disabled="analysisLoading"
-          @click="takeSnapshotAndAnalyze"
-        >
-          {{
-            analysisLoading
-              ? '分析中...'
-              : `AI 分析当前画面（${currentAnswerModeLabel}）`
-          }}
-        </button>
-
-        <p
-          v-if="captureError"
-          class="error-text"
-        >
-          {{ captureError }}
-        </p>
-
-        <div
-          v-if="analysisResult"
-          class="analysis-content"
-        >
-          <p class="analysis-summary">
-            {{ analysisResult.summary }}
+          <p class="panel-desc">
+            点击按钮后截取当前摄像头画面，并识别画面中的题目和答案。
           </p>
 
-          <div class="info-grid compact">
-            <span>分析时间</span>
-            <strong>
-              {{ formatDateTime(analysisResult.capturedAt) }}
-            </strong>
+          <div class="answer-mode-selector">
+            <span class="answer-mode-label">请求回答模式</span>
 
-            <span>置信度</span>
-            <strong>{{ confidenceText }}</strong>
+            <div class="answer-mode-buttons">
+              <button v-for="option in answerModeOptions" :key="option.value" type="button" class="answer-mode-button"
+                :class="{
+                  active: answerMode === option.value
+                }" :disabled="analysisLoading" @click="answerMode = option.value">
+                {{ option.label }}
+              </button>
+            </div>
 
-            <!-- <span>识别题目数</span>
+            <p class="answer-mode-tip">
+              选择内容会作为请求参数发送，分析结果仍然显示全部三种答案。
+            </p>
+          </div>
+
+          <button class="analyze-button" type="button" :disabled="analysisLoading" @click="takeSnapshotAndAnalyze">
+            {{
+              analysisLoading
+                ? '分析中...'
+                : `AI 分析当前画面（${currentAnswerModeLabel}）`
+            }}
+          </button>
+
+          <p v-if="captureError" class="error-text">
+            {{ captureError }}
+          </p>
+
+          <div v-if="analysisResult" class="analysis-content">
+            <p class="analysis-summary">
+              {{ analysisResult.summary }}
+            </p>
+
+            <div class="info-grid compact">
+              <span>分析时间</span>
+              <strong>
+                {{ formatDateTime(analysisResult.capturedAt) }}
+              </strong>
+
+              <span>置信度</span>
+              <strong>{{ confidenceText }}</strong>
+
+              <!-- <span>识别题目数</span>
             <strong>
               {{ analysisResult.questions?.length || 0 }} 道
             </strong> -->
-          </div>
-
-          <div
-            v-for="question in analysisResult.questions"
-            :key="question.questionNo"
-            class="question-answer-card"
-          >
-            <div class="question-answer-header">
-              <h3>{{ question.questionNo }}</h3>
-
-              <span>
-                {{ question.questionType }}
-              </span>
             </div>
 
-            <p
-              v-if="question.questionTitle"
-              class="question-title"
-            >
-              {{ question.questionTitle }}
-            </p>
+            <div v-for="question in analysisResult.questions" :key="question.questionNo" class="question-answer-card">
+              <div class="question-answer-header">
+                <h3>{{ question.questionNo }}</h3>
 
-            <div class="answer-block simple-answer">
-              <h4>最简化答案</h4>
-              <p>{{ question.simpleAnswer }}</p>
-            </div>
+                <span>
+                  {{ question.questionType }}
+                </span>
+              </div>
 
-            <div class="answer-block balanced-answer">
-              <h4>平衡答案</h4>
-              <p>{{ question.balancedAnswer }}</p>
-            </div>
+              <p v-if="question.questionTitle" class="question-title">
+                {{ question.questionTitle }}
+              </p>
 
-            <div class="answer-block best-answer">
-              <h4>最优答案</h4>
-              <p>{{ question.bestAnswer }}</p>
+              <div class="answer-block simple-answer">
+                <h4>最简化答案</h4>
+                <p>{{ question.simpleAnswer }}</p>
+              </div>
+
+              <div class="answer-block balanced-answer">
+                <h4>平衡答案</h4>
+                <p>{{ question.balancedAnswer }}</p>
+              </div>
+
+              <div class="answer-block best-answer">
+                <h4>最优答案</h4>
+                <p>{{ question.bestAnswer }}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
-    </section>
+        </aside>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -241,7 +199,7 @@ import {
   ref
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
+import AppHeader from '../components/AppHeader.vue'
 import CameraPlayer from '../components/CameraPlayer.vue'
 import { analyzeCameraSnapshotApi } from '../api/camera'
 import { useCameraStore } from '../stores/cameraStore'
@@ -975,8 +933,7 @@ onBeforeUnmount(() => {
 .content-layout {
   display: grid;
   grid-template-columns:
-    minmax(0, 1fr)
-    400px;
+    minmax(0, 1fr) 400px;
   gap: 24px;
   align-items: start;
   max-width: 1280px;
@@ -1053,8 +1010,7 @@ onBeforeUnmount(() => {
 .info-grid {
   display: grid;
   grid-template-columns:
-    120px
-    minmax(0, 1fr);
+    120px minmax(0, 1fr);
   gap: 12px 16px;
   margin-top: 18px;
   color: #6b7280;
@@ -1069,8 +1025,7 @@ onBeforeUnmount(() => {
 
 .info-grid.compact {
   grid-template-columns:
-    100px
-    minmax(0, 1fr);
+    100px minmax(0, 1fr);
   padding: 14px;
   border: 1px solid #e5e7eb;
   border-radius: 14px;

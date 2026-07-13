@@ -43,8 +43,8 @@ class CameraAccessBackendApplicationTests {
 	 * =========================================================
 	 */
 
-	private static final String TEST_USERNAME = "heyujie";
-	private static final String TEST_EMAIL = "heyujie@gmail.com";
+	private static final String TEST_USERNAME = "duanxu";
+	private static final String TEST_EMAIL = "duanxu@gmail.com";
 	private static final String TEST_PASSWORD = "123456";
 	private static final String TEST_ROLE = "USER";
 	private static final String TEST_USER_STATUS = "ACTIVE";
