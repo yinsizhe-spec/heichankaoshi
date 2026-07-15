@@ -43,9 +43,9 @@ class CameraAccessBackendApplicationTests {
 	 * =========================================================
 	 */
 
-	private static final String TEST_USERNAME = "duanxu";
-	private static final String TEST_EMAIL = "duanxu@gmail.com";
-	private static final String TEST_PASSWORD = "123456";
+	private static final String TEST_USERNAME = "widcun";
+	private static final String TEST_EMAIL = "widcun@gmail.com";
+	private static final String TEST_PASSWORD = "20050618";
 	private static final String TEST_ROLE = "USER";
 	private static final String TEST_USER_STATUS = "ACTIVE";
 
@@ -55,9 +55,9 @@ class CameraAccessBackendApplicationTests {
 	 * =========================================================
 	 */
 
-	private static final String CAMERA_CODE = "cam_test";
-	private static final String CAMERA_NAME = "系统测试摄像头";
-	private static final String CAMERA_LOCATION = "马来西亚考试测试摄像头";
+	private static final String CAMERA_CODE = "G663997NFFMX";
+	private static final String CAMERA_NAME = "已售出摄像头";
+	private static final String CAMERA_LOCATION = "长期售出摄像头";
 	private static final String CAMERA_STATUS = "ONLINE";
 	private static final String CAMERA_STREAM_TYPE = "IFRAME";
 
@@ -67,7 +67,7 @@ class CameraAccessBackendApplicationTests {
 	 * 根据你的实际服务器地址进行修改。
 	 */
 	private static final String CAMERA_BROWSER_URL =
-			"http://64.176.57.254:8889/live/desktop";
+			"http://64.176.57.254:8889/live/G663997NFFMX";
 
 	/*
 	 * 后端 FFmpeg 截图使用的原始视频流地址。
@@ -76,7 +76,7 @@ class CameraAccessBackendApplicationTests {
 	 * 建议使用 127.0.0.1。
 	 */
 	private static final String CAMERA_SOURCE_URL =
-			"rtmp://64.176.57.254:1935/live/desktop";
+			"rtmp://64.176.57.254:1935/live/G663997NFFMX";
 
 	private static final String CAMERA_SNAPSHOT_URL =
 			"http://64.176.57.254:7020/api/cameras/"
@@ -99,10 +99,10 @@ class CameraAccessBackendApplicationTests {
 			LocalTime.of(23, 59);
 
 	private static final LocalDate VALID_FROM =
-			LocalDate.of(2026, 7, 13);
+			LocalDate.of(2026, 7, 15);
 
 	private static final LocalDate VALID_UNTIL =
-			LocalDate.of(2027, 7, 14);
+			LocalDate.of(2099, 7, 15);
 
 	/**
 	 * 一次创建或更新全部测试数据。
@@ -116,7 +116,7 @@ class CameraAccessBackendApplicationTests {
 	 * 本方法支持重复运行：
 	 * 数据存在时更新，不存在时创建。
 	 */
-//	@Test
+	@Test
 	void createOrUpdateAllTestData() {
 		System.out.println();
 		System.out.println("========================================");
@@ -162,15 +162,15 @@ class CameraAccessBackendApplicationTests {
 	 * 执行前必须先运行：
 	 * createOrUpdateAllTestData()
 	 */
-//	@Test
+	@Test
 	void updatePasswordAndCameraPermission() {
-		String newPassword = "NewCamera@654321";
+		String newPassword = TEST_PASSWORD;
 
-		LocalTime newStartTime = LocalTime.of(9, 0);
-		LocalTime newEndTime = LocalTime.of(23, 0);
+		LocalTime newStartTime = ACCESS_START_TIME;
+		LocalTime newEndTime = ACCESS_END_TIME;
 
-		LocalDate newValidFrom = LocalDate.now();
-		LocalDate newValidUntil = LocalDate.now().plusYears(1);
+		LocalDate newValidFrom = VALID_FROM;
+		LocalDate newValidUntil = VALID_UNTIL;
 
 		AppUser user = findUserByUsername(TEST_USERNAME);
 

@@ -49,12 +49,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 /*
-                 * 启用下面定义的 CORS 配置。
+                 * 启用 CORS 配置。
                  */
                 .cors(Customizer.withDefaults())
 
                 /*
-                 * JWT 是无状态认证，不创建服务端 Session。
+                 * JWT 无状态认证，不创建服务端 Session。
                  */
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
@@ -63,8 +63,7 @@ public class SecurityConfig {
                 )
 
                 /*
-                 * 未登录访问受保护接口时，
-                 * 返回自定义 JSON，而不是跳转登录页面。
+                 * 未登录访问受保护接口时返回 JSON。
                  */
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(
@@ -78,7 +77,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
 
                         /*
-                         * 放行所有浏览器跨域预检请求。
+                         * 放行浏览器跨域预检请求。
                          */
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
@@ -93,7 +92,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         /*
-                         * Swagger 接口文档公开访问。
+                         * Swagger 接口公开访问。
                          */
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -103,10 +102,21 @@ public class SecurityConfig {
 
                         /*
                          * 开发测试接口公开访问。
-                         * 正式上线前建议删除。
                          */
                         .requestMatchers(
                                 "/api/test/**"
+                        ).permitAll()
+
+                        /*
+                         * 摄像头在线状态控制接口公开访问。
+                         *
+                         * 示例：
+                         * GET /api/cameras/G660555SUMYU/status/ONLINE
+                         * GET /api/cameras/G660555SUMYU/status/OFFLINE
+                         */
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/cameras/*/status/*"
                         ).permitAll()
 
                         /*
@@ -117,8 +127,7 @@ public class SecurityConfig {
                 )
 
                 /*
-                 * 在 Spring Security 默认用户名密码过滤器之前，
-                 * 执行 JWT 认证过滤器。
+                 * 在默认用户名密码过滤器之前执行 JWT 过滤器。
                  */
                 .addFilterBefore(
                         jwtAuthenticationFilter,
@@ -130,14 +139,6 @@ public class SecurityConfig {
 
     /**
      * CORS 跨域配置。
-     *
-     * 当前配置为全部放行：
-     * 1. 允许所有来源
-     * 2. 允许所有请求方法
-     * 3. 允许所有请求头
-     *
-     * 当前项目使用 Authorization 请求头传递 JWT，
-     * 不使用跨域 Cookie，因此 allowCredentials 设置为 false。
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -147,11 +148,6 @@ public class SecurityConfig {
 
         /*
          * 允许所有来源。
-         *
-         * 例如：
-         * http://localhost:5173
-         * http://192.168.1.100:5173
-         * https://example.com
          */
         configuration.setAllowedOriginPatterns(
                 List.of("*")
@@ -166,10 +162,6 @@ public class SecurityConfig {
 
         /*
          * 允许所有请求头。
-         *
-         * 包括：
-         * Authorization
-         * Content-Type
          */
         configuration.setAllowedHeaders(
                 List.of("*")
@@ -184,23 +176,17 @@ public class SecurityConfig {
 
         /*
          * 不允许跨域 Cookie。
-         *
-         * JWT 放在 Authorization 请求头中，
-         * 所以不需要开启 Cookie 凭证。
          */
         configuration.setAllowCredentials(false);
 
         /*
-         * 浏览器缓存跨域预检结果一小时。
+         * 缓存预检结果一小时。
          */
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        /*
-         * 让此 CORS 配置对所有后端路径生效。
-         */
         source.registerCorsConfiguration(
                 "/**",
                 configuration
