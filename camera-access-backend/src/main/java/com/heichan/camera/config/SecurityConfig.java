@@ -112,7 +112,7 @@ public class SecurityConfig {
                          *
                          * 示例：
                          * GET /api/cameras/G660555SUMYU/status/ONLINE
-                         * GET /api/cameras/G660555SUMYU/status/OFFLINE
+                         * GET /api/camerasv/G660555SUMYU/status/OFFLINE
                          */
                         .requestMatchers(
                                 HttpMethod.GET,

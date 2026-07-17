@@ -43,9 +43,9 @@ class CameraAccessBackendApplicationTests {
 	 * =========================================================
 	 */
 
-	private static final String TEST_USERNAME = "widcun";
-	private static final String TEST_EMAIL = "widcun@gmail.com";
-	private static final String TEST_PASSWORD = "20050618";
+	private static final String TEST_USERNAME = "uucshyyh";
+	private static final String TEST_EMAIL = "uucshyyh@gmail.com";
+	private static final String TEST_PASSWORD = "1234567890";
 	private static final String TEST_ROLE = "USER";
 	private static final String TEST_USER_STATUS = "ACTIVE";
 
@@ -55,10 +55,10 @@ class CameraAccessBackendApplicationTests {
 	 * =========================================================
 	 */
 
-	private static final String CAMERA_CODE = "G663997NFFMX";
-	private static final String CAMERA_NAME = "已售出摄像头";
-	private static final String CAMERA_LOCATION = "长期售出摄像头";
-	private static final String CAMERA_STATUS = "ONLINE";
+	private static final String CAMERA_CODE = "G682541UZUST";
+	private static final String CAMERA_NAME = "已售出长期设备";
+	private static final String CAMERA_LOCATION = "马来西亚设备";
+	private static final String CAMERA_STATUS = "OFFLINE";
 	private static final String CAMERA_STREAM_TYPE = "IFRAME";
 
 	/*
@@ -84,7 +84,7 @@ class CameraAccessBackendApplicationTests {
 					+ "/snapshot";
 
 	private static final String CAMERA_DESCRIPTION =
-			"用于考试监控、画面拍照和 AI 内容分析";
+			"uucshyyh用户购买设备";
 
 	/*
 	 * =========================================================
