@@ -21,36 +21,35 @@
             <el-option label="HLS" value="HLS" />
             <el-option label="IFRAME" value="IFRAME" />
             <el-option label="WebRTC" value="WEBRTC" />
-            <el-option label="RTSP" value="RTSP" />
+            <el-option label="MJPEG" value="MJPEG" />
           </el-select>
         </el-form-item>
       </div>
 
-      <el-form-item label="用户播放地址" prop="streamUrl">
+      <el-form-item label="播放地址" prop="streamSourceUrl">
         <el-input
-          v-model="form.streamUrl"
+          v-model="form.streamSourceUrl"
           placeholder="例如：http://server:8888/live/desktop/index.m3u8"
         />
       </el-form-item>
-      <el-form-item label="源视频地址">
+
+      <el-form-item label="截图源地址">
         <el-input
           v-model="form.sourceStreamUrl"
           placeholder="例如：rtsp://server:8554/live/desktop"
         />
       </el-form-item>
-      <el-form-item label="初始管理状态">
-        <el-radio-group v-model="form.adminStatus">
+
+      <el-form-item label="摄像头状态" prop="status">
+        <el-radio-group v-model="form.status">
           <el-radio value="ONLINE">上线</el-radio>
           <el-radio value="OFFLINE">下线</el-radio>
+          <el-radio value="MAINTENANCE">维护中</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="AI分析">
-        <el-switch
-          v-model="form.aiEnabled"
-          inline-prompt
-          active-text="启用"
-          inactive-text="关闭"
-        />
+
+      <el-form-item label="摄像头说明">
+        <el-input v-model="form.description" type="textarea" :rows="3" />
       </el-form-item>
     </el-form>
 
@@ -77,11 +76,11 @@ const defaultForm = () => ({
   cameraName: '',
   location: '',
   streamType: 'HLS',
-  streamUrl: '',
+  streamSourceUrl: '',
   sourceStreamUrl: '',
-  adminStatus: 'OFFLINE',
-  runtimeStatus: 'OFFLINE',
-  aiEnabled: true
+  snapshotUrl: '',
+  description: '',
+  status: 'OFFLINE'
 })
 
 const form = reactive(defaultForm())
@@ -91,7 +90,8 @@ const rules = {
   cameraName: [{ required: true, message: '请输入摄像头名称', trigger: 'blur' }],
   location: [{ required: true, message: '请输入安装位置', trigger: 'blur' }],
   streamType: [{ required: true, message: '请选择播放类型', trigger: 'change' }],
-  streamUrl: [{ required: true, message: '请输入用户播放地址', trigger: 'blur' }]
+  streamSourceUrl: [{ required: true, message: '请输入播放地址', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择摄像头状态', trigger: 'change' }]
 }
 
 function open(row = null) {

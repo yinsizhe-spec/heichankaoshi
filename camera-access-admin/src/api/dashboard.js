@@ -8,8 +8,9 @@ export async function getDashboardSummaryApi() {
     return {
       userCount: mockUsers.length,
       cameraCount: mockCameras.length,
-      onlineCameraCount: mockCameras.filter((item) => item.runtimeStatus === 'ONLINE').length,
-      enabledCameraCount: mockCameras.filter((item) => item.adminStatus === 'ONLINE').length,
+      onlineCameraCount: mockCameras.filter((item) => item.status === 'ONLINE').length,
+      offlineCameraCount: mockCameras.filter((item) => item.status === 'OFFLINE').length,
+      maintenanceCameraCount: mockCameras.filter((item) => item.status === 'MAINTENANCE').length,
       activePermissionCount: mockPermissions.filter((item) => item.status === 'ACTIVE').length,
       todayAnalysisCount: 37,
       cameras: mockCameras,

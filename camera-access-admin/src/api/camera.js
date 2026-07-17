@@ -16,10 +16,20 @@ function pageResult(params, records) {
   }
 }
 
+function normalizePage(data) {
+  return {
+    records: data.records || [],
+    page: data.current || data.page || 1,
+    size: data.size || 10,
+    total: data.total || 0
+  }
+}
+
 export async function listCamerasApi(params = {}) {
   if (useMock) {
     let records = [...cameras]
     const keyword = String(params.keyword || '').trim().toLowerCase()
+
     if (keyword) {
       records = records.filter((item) =>
         [item.cameraName, item.cameraCode, item.location]
@@ -27,15 +37,16 @@ export async function listCamerasApi(params = {}) {
           .some((value) => String(value).toLowerCase().includes(keyword))
       )
     }
-    if (params.adminStatus) {
-      records = records.filter((item) => item.adminStatus === params.adminStatus)
+
+    if (params.status) {
+      records = records.filter((item) => item.status === params.status)
     }
-    if (params.runtimeStatus) {
-      records = records.filter((item) => item.runtimeStatus === params.runtimeStatus)
-    }
+
     return pageResult(params, records)
   }
-  return http.get('/api/admin/cameras', { params })
+
+  const data = await http.get('/api/admin/cameras', { params })
+  return normalizePage(data)
 }
 
 export async function createCameraApi(payload) {
@@ -43,23 +54,34 @@ export async function createCameraApi(payload) {
     const item = {
       ...payload,
       id: Date.now(),
-      runtimeStatus: 'OFFLINE',
-      lastHeartbeatTime: '',
-      offlineReason: ''
+      status: payload.status || 'OFFLINE'
     }
     cameras.unshift(item)
     return item
   }
+
   return http.post('/api/admin/cameras', payload)
 }
 
 export async function updateCameraApi(id, payload) {
   if (useMock) {
     const index = cameras.findIndex((item) => item.id === id)
+    if (index < 0) {
+      throw new Error('摄像头不存在')
+    }
     cameras[index] = { ...cameras[index], ...payload }
     return cameras[index]
   }
+
   return http.put(`/api/admin/cameras/${id}`, payload)
+}
+
+export async function updateCameraStatusApi(id, status) {
+  if (useMock) {
+    return updateCameraApi(id, { status })
+  }
+
+  return http.put(`/api/admin/cameras/${id}/status`, { status })
 }
 
 export async function deleteCameraApi(id) {
@@ -67,43 +89,6 @@ export async function deleteCameraApi(id) {
     cameras = cameras.filter((item) => item.id !== id)
     return true
   }
+
   return http.delete(`/api/admin/cameras/${id}`)
-}
-
-export async function setCameraOnlineApi(id, reason = '') {
-  if (useMock) {
-    return updateCameraApi(id, {
-      adminStatus: 'ONLINE',
-      offlineReason: '',
-      statusReason: reason
-    })
-  }
-  return http.put(`/api/admin/cameras/${id}/online`, { reason })
-}
-
-export async function setCameraOfflineApi(id, reason) {
-  if (useMock) {
-    return updateCameraApi(id, {
-      adminStatus: 'OFFLINE',
-      offlineReason: reason
-    })
-  }
-  return http.put(`/api/admin/cameras/${id}/offline`, { reason })
-}
-
-export async function testCameraStreamApi(id) {
-  if (useMock) {
-    await new Promise((resolve) => setTimeout(resolve, 900))
-    const camera = cameras.find((item) => item.id === id)
-    return {
-      cameraId: id,
-      success: camera?.runtimeStatus === 'ONLINE',
-      runtimeStatus: camera?.runtimeStatus || 'ERROR',
-      message:
-        camera?.runtimeStatus === 'ONLINE'
-          ? '视频流连接正常'
-          : '当前无法连接视频流'
-    }
-  }
-  return http.post(`/api/admin/cameras/${id}/test-stream`)
 }

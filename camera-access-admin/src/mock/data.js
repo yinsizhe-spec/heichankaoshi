@@ -47,13 +47,9 @@ export const mockCameras = [
     cameraName: 'Camera-01',
     location: 'Exam Room A',
     streamType: 'HLS',
-    streamUrl: 'http://64.176.57.254:8888/live/desktop/index.m3u8',
+    streamSourceUrl: 'http://64.176.57.254:8888/live/desktop/index.m3u8',
     sourceStreamUrl: 'rtsp://64.176.57.254:8554/live/desktop',
-    adminStatus: 'ONLINE',
-    runtimeStatus: 'ONLINE',
-    aiEnabled: true,
-    lastHeartbeatTime: '2026-07-17 12:30:20',
-    offlineReason: ''
+    status: 'ONLINE',
   },
   {
     id: 2,
@@ -61,13 +57,9 @@ export const mockCameras = [
     cameraName: 'Camera-02',
     location: 'Exam Room B',
     streamType: 'IFRAME',
-    streamUrl: 'http://64.176.57.254:8888/live/classroom2',
+    streamSourceUrl: 'http://64.176.57.254:8888/live/classroom2',
     sourceStreamUrl: 'rtsp://64.176.57.254:8554/live/classroom2',
-    adminStatus: 'ONLINE',
-    runtimeStatus: 'OFFLINE',
-    aiEnabled: true,
-    lastHeartbeatTime: '2026-07-17 12:05:11',
-    offlineReason: ''
+    status: 'OFFLINE',
   },
   {
     id: 3,
@@ -75,13 +67,9 @@ export const mockCameras = [
     cameraName: 'Camera-03',
     location: 'Exam Room C',
     streamType: 'HLS',
-    streamUrl: 'http://64.176.57.254:8888/live/classroom3/index.m3u8',
+    streamSourceUrl: 'http://64.176.57.254:8888/live/classroom3/index.m3u8',
     sourceStreamUrl: 'rtsp://64.176.57.254:8554/live/classroom3',
-    adminStatus: 'OFFLINE',
-    runtimeStatus: 'ONLINE',
-    aiEnabled: false,
-    lastHeartbeatTime: '2026-07-17 12:29:45',
-    offlineReason: '设备维护'
+    status: 'MAINTENANCE',
   }
 ]
 
@@ -133,6 +121,6 @@ export const mockPermissions = [
 export const mockOperations = [
   { id: 1, title: 'Camera-03 已被管理员下线', time: '12:32', type: 'warning' },
   { id: 2, title: '创建用户 zhangsan', time: '11:40', type: 'success' },
-  { id: 3, title: 'Camera-01 视频流检测成功', time: '10:25', type: 'success' },
+  { id: 3, title: 'Camera-01 已上线', time: '10:25', type: 'success' },
   { id: 4, title: '更新 lisi 的访问权限', time: '09:58', type: 'primary' }
 ]

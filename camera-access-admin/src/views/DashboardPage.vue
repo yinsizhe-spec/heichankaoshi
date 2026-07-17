@@ -30,8 +30,8 @@
         <template #header>
           <div class="card-header">
             <div>
-              <strong>摄像头运行状态</strong>
-              <span>管理员状态和视频流状态相互独立</span>
+              <strong>摄像头状态</strong>
+              <span>状态由 status 字段统一控制</span>
             </div>
             <el-button text type="primary" @click="$router.push('/cameras')">
               查看全部
@@ -42,25 +42,32 @@
         <el-table :data="data.cameras" stripe>
           <el-table-column prop="cameraName" label="摄像头" min-width="130" />
           <el-table-column prop="location" label="位置" min-width="130" />
-          <el-table-column label="管理状态" width="110">
+          <el-table-column label="状态" width="120">
             <template #default="{ row }">
-              <el-tag :type="row.adminStatus === 'ONLINE' ? 'success' : 'info'">
-                {{ row.adminStatus === 'ONLINE' ? '已上线' : '已下线' }}
+              <el-tag
+                :type="
+                  row.status === 'ONLINE'
+                    ? 'success'
+                    : row.status === 'MAINTENANCE'
+                      ? 'warning'
+                      : 'info'
+                "
+              >
+                {{
+                  row.status === 'ONLINE'
+                    ? '已上线'
+                    : row.status === 'MAINTENANCE'
+                      ? '维护中'
+                      : '已下线'
+                }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="运行状态" width="110">
+          <el-table-column prop="description" label="说明" min-width="180">
             <template #default="{ row }">
-              <span>
-                <i
-                  class="status-dot"
-                  :class="row.runtimeStatus === 'ONLINE' ? 'online' : 'offline'"
-                />
-                {{ row.runtimeStatus === 'ONLINE' ? '在线' : '离线' }}
-              </span>
+              {{ row.description || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="lastHeartbeatTime" label="最近检测" min-width="160" />
         </el-table>
       </el-card>
 
@@ -98,7 +105,8 @@ const data = reactive({
   userCount: 0,
   cameraCount: 0,
   onlineCameraCount: 0,
-  enabledCameraCount: 0,
+  offlineCameraCount: 0,
+  maintenanceCameraCount: 0,
   activePermissionCount: 0,
   todayAnalysisCount: 0,
   cameras: [],
@@ -119,15 +127,15 @@ const stats = computed(() => [
     className: 'purple'
   },
   {
-    label: '视频流在线',
+    label: '已上线设备',
     value: data.onlineCameraCount,
     icon: 'Connection',
     className: 'green'
   },
   {
-    label: '已上线设备',
-    value: data.enabledCameraCount,
-    icon: 'CircleCheck',
+    label: '已下线设备',
+    value: data.offlineCameraCount,
+    icon: 'CircleClose',
     className: 'cyan'
   },
   {
